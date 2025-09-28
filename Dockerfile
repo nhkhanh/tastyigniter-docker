@@ -1,24 +1,27 @@
-FROM php:7.4-apache
+FROM php:8.3-apache
 
 # install the PHP extensions we need
 RUN set -ex; \
-	\
+\
 	apt-get update; \
 	apt-get install -y \
+		git \
+		zip \
 		unzip \
 		openssl \
 		libcurl4-openssl-dev \
-		libjpeg-dev \
-		libpng-dev \
-		libmcrypt-dev \
-		libxml2-dev \
 		libonig-dev \
+		libjpeg62-turbo-dev \
+		libpng-dev \
+		libfreetype6-dev \
+		libxml2-dev \
+		libicu-dev \
 		libzip-dev \
-	; \
+		; \
 	rm -rf /var/lib/apt/lists/*; \
 	\
-	docker-php-ext-configure gd --with-jpeg=/usr; \
-	docker-php-ext-install -j$(nproc) pdo_mysql curl dom gd mbstring json tokenizer zip exif
+    docker-php-ext-configure gd --with-jpeg --with-freetype; \
+    docker-php-ext-install -j$(nproc) pdo_mysql bcmath curl dom gd mbstring zip exif intl
 
 RUN pecl install -o -f redis \
     &&  rm -rf /tmp/pear \
@@ -36,10 +39,12 @@ RUN { \
 	} > /usr/local/etc/php/conf.d/opcache-recommended.ini
 
 RUN a2enmod rewrite
+RUN sed -ri -e 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf /etc/apache2/apache2.conf && \
+    echo "ServerName localhost" > /etc/apache2/conf-available/servername.conf && a2enconf servername
 
 VOLUME /var/www/html
 
-ENV TASTYIGNITER_VERSION 3.4.0
+ENV TASTYIGNITER_VERSION 4.0.4
 
 RUN set -ex; \
 	curl -o tastyigniter.zip -fSL "https://codeload.github.com/tastyigniter/TastyIgniter/zip/v${TASTYIGNITER_VERSION}"; \

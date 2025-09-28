@@ -1,7 +1,8 @@
-version: '2'
 services:
   app:
-    image: thisisqasim/tastyigniter:3.4.0
+    build:
+      context: .
+      dockerfile: Dockerfile
     hostname: tasty
     ports:
       - 8001:80
